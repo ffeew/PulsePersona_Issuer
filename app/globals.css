@@ -13,7 +13,7 @@ html {
 
 @layer base {
   p {
-    @apply tracking-wide text-theme-black;
+    @apply text-theme-black text-sm;
   }
 
   button {
@@ -21,11 +21,11 @@ html {
   }
 
   input {
-    @apply tracking-wide text-theme-black outline-none focus:outline-none bg-transparent font-semibold;
+    @apply text-theme-black outline-none focus:outline-none bg-transparent font-semibold;
   }
 
   input::placeholder {
-    @apply tracking-wide text-theme-black font-semibold;
+    @apply text-theme-black font-semibold;
   }
 }
 

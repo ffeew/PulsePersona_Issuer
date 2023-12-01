@@ -3,12 +3,40 @@
 import { useState } from "react";
 import ChevronDown from "./assets/svgs/ChevronDown";
 import Logo from "./assets/svgs/Logo";
+import Web3 from "web3";
 
 export default function Home() {
   const [expand, setExpand] = useState(false);
 
   const handleDownload = () => {
-    // do something
+    const uuid1 = crypto.randomUUID();
+    const uuid2 = crypto.randomUUID();
+    const vcId = Web3.utils.soliditySha3(uuid1 + uuid2);
+
+    const vc = {
+      "@context": "https://www.w3.org/ns/credentials/v2",
+      id: vcId,
+      type: ["VerifiableCredential"],
+      issuer:
+        "did:pulsepersona:eb1092fb0a81bf11b774287d01e8a0c59a817a997025f31819698fba358ebbad",
+      validFrom: new Date().toISOString(),
+      credentialSubject: {
+        id: "did:pulsepersona:eb1092fb0a81bf11b774287d01e8a0c59a817a997025f31819698fba358ebbad",
+        name: "Jane",
+        studentNo: "Doe",
+        dateOfBirth: "janedoe@example.com",
+        dateIssued: "janedoe@example.com",
+      },
+    };
+
+    const url = window.URL.createObjectURL(
+      new Blob([JSON.stringify(vc)], { type: "application/ld+json" })
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "Academic Transcript.json");
+    document.body.appendChild(link);
+    link.click();
   };
 
   return (

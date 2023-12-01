@@ -2,26 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  p {
+    @apply tracking-wide text-theme-black;
+  }
+
+  button {
+    @apply pressable;
+  }
+
+  input {
+    @apply tracking-wide text-theme-black outline-none focus:outline-none bg-transparent font-semibold;
+  }
+
+  input::placeholder {
+    @apply tracking-wide text-theme-black font-semibold;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .pressable {
+    @apply transition-all-bounce active:scale-90 cursor-pointer;
+  }
+
+  .container-screen {
+    @apply w-full h-full min-w-full min-h-screen;
+  }
+
+  .flex-all-center {
+    @apply flex justify-center items-center;
+  }
+
+  .flex-row-all-center {
+    @apply flex flex-row justify-center items-center;
+  }
+
+  .flex-col-all-center {
+    @apply flex flex-col justify-center items-center;
+  }
+
+  .overlay {
+    @apply absolute top-0;
+  }
+}
+
+@layer utilities {
+  .drop-shadow-card {
+    box-shadow: 0px 4px 80px 0px rgba(0, 0, 0, 0.07);
+  }
+
+  .transition-all-bounce {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition-duration: 300ms;
+  }
 }

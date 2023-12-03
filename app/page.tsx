@@ -82,7 +82,7 @@ export default function Home() {
 		// Dummy data
 		const transcriptName = "Computer Science Degree";
 		const receipientName = "John Doe";
-		const receipientDid = "did:pulsepersona:565fd38cdbeb31339ecc27c58d601c13";
+		const receipientDid = "did:pulsepersona:2ffdf617dfdf805a3db4c6e62b169ff2";
 		const studentNo = "123456789";
 		const dateOfBirth = "1995-05-15";
 		const description = "Bachelor's Degree in Computer Science";
@@ -139,7 +139,7 @@ export default function Home() {
 				abi,
 				signer
 			);
-
+			console.log("VC ID ", vc.id);
 			const tx = await contract.issueClaim(receipientDid, vc.id, vcHash);
 			await tx.wait();
 			console.log("transaction ", tx);
@@ -149,7 +149,7 @@ export default function Home() {
 			);
 			const link = document.createElement("a");
 			link.href = url;
-			link.setAttribute("download", "Academic Transcript.json");
+			link.setAttribute("download", "Academic Transcript.jsonld");
 			document.body.appendChild(link);
 			link.click();
 		} catch (error) {

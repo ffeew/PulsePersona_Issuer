@@ -4,37 +4,157 @@ import { useState } from "react";
 import ChevronDown from "./assets/svgs/ChevronDown";
 import Logo from "./assets/svgs/Logo";
 import { randomBytes } from "crypto";
+import { ethers } from "ethers";
+import issuerConfig from "../issuer.config.json";
+import abi from "./identityRegistryAbi.json";
+import { MetaMaskInpageProvider } from "@metamask/providers";
+
+declare global {
+	interface Window {
+		ethereum?: MetaMaskInpageProvider;
+	}
+}
+type Grades = {
+	year: string;
+	term: string;
+	module: string;
+	grade: string;
+	credits: string;
+};
+
+type AcademicTranscriptVC = {
+	"@context": string[];
+	id: string;
+	type: string[];
+	issuer: string;
+	name: string;
+	issuanceDate: string;
+	credentialSubject: {
+		id: string;
+		name: string;
+		studentNo: string;
+		dateOfBirth: string;
+		type: string;
+		description: string;
+		semesters: Grades[];
+	};
+};
 
 export default function Home() {
 	const [expand, setExpand] = useState(false);
 
-	const handleDownload = () => {
-		const vcId = randomBytes(32).toString("hex");
-
-		const vc = {
-			"@context": "https://www.w3.org/ns/credentials/v2",
+	const generateAcademicVC = async (
+		transcriptName: string,
+		receipientName: string,
+		receipientDid: string,
+		studentNo: string,
+		dateOfBirth: string,
+		description: string,
+		degreeName: string,
+		semesters: Grades[]
+	) => {
+		const vcId = ethers.hexlify(randomBytes(32));
+		const vc: AcademicTranscriptVC = {
+			"@context": [
+				"https://www.w3.org/ns/credentials/v2",
+				"https://w3id.org/security/suites/ed25519-2020/v1",
+			],
 			id: vcId,
-			type: ["VerifiableCredential"],
-			issuer:
-				"did:pulsepersona:eb1092fb0a81bf11b774287d01e8a0c59a817a997025f31819698fba358ebbad",
-			validFrom: new Date().toISOString(),
+			type: ["VerifiableCredential", "AcademicTranscriptCredential"],
+			name: transcriptName,
+			issuer: issuerConfig.issuerDid,
+			issuanceDate: new Date().toISOString(),
 			credentialSubject: {
-				id: "did:pulsepersona:eb1092fb0a81bf11b774287d01e8a0c59a817a997025f31819698fba358ebbad",
-				name: "Jane",
-				studentNo: "Doe",
-				dateOfBirth: "janedoe@example.com",
-				dateIssued: "janedoe@example.com",
+				id: receipientDid,
+				name: receipientName,
+				studentNo: studentNo,
+				type: degreeName,
+				dateOfBirth: dateOfBirth,
+				description: description,
+				semesters: semesters,
 			},
 		};
+		return vc;
+	};
 
-		const url = window.URL.createObjectURL(
-			new Blob([JSON.stringify(vc)], { type: "application/ld+json" })
+	const handleDownload = async () => {
+		// TODO: replace dummy data with actual data
+		// Dummy data
+		const transcriptName = "Computer Science Degree";
+		const receipientName = "John Doe";
+		const receipientDid = "did:pulsepersona:565fd38cdbeb31339ecc27c58d601c13";
+		const studentNo = "123456789";
+		const dateOfBirth = "1995-05-15";
+		const description = "Bachelor's Degree in Computer Science";
+		const degreeName = "Bachelor of Science";
+		const semesters = [
+			{
+				year: "2020",
+				term: "Fall",
+				module: "Computer Vision",
+				grade: "A",
+				credits: "4",
+			},
+			{
+				year: "2020",
+				term: "Spring",
+				module: "Natural Language Processing",
+				grade: "B+",
+				credits: "3",
+			},
+			{
+				year: "2021",
+				term: "Fall",
+				module: "Machine Learning",
+				grade: "A-",
+				credits: "4",
+			},
+			// Add more semesters as needed
+		];
+
+		const vc = await generateAcademicVC(
+			transcriptName,
+			receipientName,
+			receipientDid,
+			studentNo,
+			dateOfBirth,
+			description,
+			degreeName,
+			semesters
 		);
-		const link = document.createElement("a");
-		link.href = url;
-		link.setAttribute("download", "Academic Transcript.json");
-		document.body.appendChild(link);
-		link.click();
+
+		const vcBytes = ethers.toUtf8Bytes(JSON.stringify(vc));
+		const vcHash = ethers.keccak256(vcBytes);
+		console.log("VC hash", vcHash);
+
+		try {
+			if (window.ethereum == null) {
+				throw new Error("MetaMask is not installed");
+			}
+			const provider = new ethers.BrowserProvider(window.ethereum);
+			const signer = await provider.getSigner();
+
+			const contract = new ethers.Contract(
+				issuerConfig.smartContractAddress,
+				abi,
+				signer
+			);
+
+			const tx = await contract.issueClaim(receipientDid, vc.id, vcHash);
+			await tx.wait();
+			console.log("transaction ", tx);
+
+			const url = window.URL.createObjectURL(
+				new Blob([JSON.stringify(vc)], { type: "application/ld+json" })
+			);
+			const link = document.createElement("a");
+			link.href = url;
+			link.setAttribute("download", "Academic Transcript.json");
+			document.body.appendChild(link);
+			link.click();
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	return (
@@ -67,9 +187,9 @@ export default function Home() {
 			<div className="container-screen pl-72 bg-zinc-100 py-8 pr-8">
 				<div className="w-full flex flex-col justify-start items-start space-y-5">
 					<div className="flex flex-col justify-center items-start space-y-1">
-						<p className="text-2xl font-medium">Your Academic Transcript</p>
+						<p className="text-2xl font-medium">Academic Transcript</p>
 						<p className="">
-							View your academic transcript or download Verifiable Credentials
+							View the academic transcripts and download Verifiable Credentials
 						</p>
 					</div>
 					<div className="w-full h-[1px] bg-zinc-300"></div>

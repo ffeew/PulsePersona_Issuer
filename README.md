@@ -49,3 +49,13 @@ npm install
 ```bash
 npm run dev
 ```
+
+### Usage Manual
+
+![Screenshot](app/assets/images/image24.png)
+
+To use the issuer, click on the “View” button to view a student’s details. You will see the following page.
+
+![Screenshot](app/assets/images/image8.png)
+
+To download the respective student’s Verifiable Credentials, enter the student’s DID and click on the “Download VC” button to download his VC.
